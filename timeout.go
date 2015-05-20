@@ -27,6 +27,15 @@ func Timeout(d string) web.Middleware {
 		ctx = ctx.Evolve(timeout)
 
 		go func() {
+			defer func() {
+				err := recover()
+				if err != nil {
+					c <- err.(error)
+				} else {
+					c <- nil
+				}
+			}()
+
 			next(ctx)
 
 			c <- nil

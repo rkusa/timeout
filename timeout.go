@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-errors/errors"
 	"github.com/rkgo/web"
 	"golang.org/x/net/context"
 )
@@ -28,17 +29,14 @@ func Timeout(d string) web.Middleware {
 
 		go func() {
 			defer func() {
-				err := recover()
-				if err != nil {
-					c <- err.(error)
+				if err := recover(); err != nil {
+					c <- errors.Wrap(err, 3)
 				} else {
 					c <- nil
 				}
 			}()
 
 			next(ctx)
-
-			c <- nil
 		}()
 
 		var err error

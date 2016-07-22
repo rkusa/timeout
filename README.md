@@ -1,9 +1,9 @@
 # timeout
 
-A timeout middleware for [rkgo/web](https://github.com/rkgo/web)
+A timeout middleware that works well (but not exclusively) with [rkusa/web](https://github.com/rkusa/web).
 
-[![Build Status][drone]](https://ci.rkusa.st/rkgo/timeout)
-[![GoDoc][godoc]](https://godoc.org/github.com/rkgo/timeout)
+[![Build Status][travis]](https://travis-ci.org/rkusa/timeout)
+[![GoDoc][godoc]](https://godoc.org/github.com/rkusa/timeout)
 
 ### Example
 
@@ -12,6 +12,9 @@ app := web.New()
 app.Use(timeout.Timeout("20ms"))
 ```
 
+## License
 
-[drone]: http://ci.rkusa.st/api/badges/rkgo/timeout/status.svg?tyle=flat-square
-[godoc]: http://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square
+[MIT](LICENSE)
+
+[travis]: https://img.shields.io/travis/rkusa/timeout.svg
+[godoc]: http://img.shields.io/badge/godoc-reference-blue.svg

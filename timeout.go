@@ -1,4 +1,5 @@
-// A timeout middleware for [rkgo/web](https://github.com/rkgo/web)
+// A timeout middleware that works well (but not exclusively) with
+// [rkusa/web](https://github.com/rkusa/web).
 //
 //  app := web.New()
 //  app.Use(timeout.Timeout("20ms"))
@@ -6,38 +7,29 @@
 package timeout
 
 import (
+	"context"
 	"net/http"
 	"time"
-
-	"github.com/go-errors/errors"
-	"github.com/rkgo/web"
-	"golang.org/x/net/context"
 )
 
-func Timeout(d string) web.Middleware {
+func Timeout(d string) func(http.ResponseWriter, *http.Request, http.HandlerFunc) {
 	duration, err := time.ParseDuration(d)
 	if err != nil {
 		panic(err)
 	}
 
-	return func(ctx web.Context, next web.Next) {
-		timeout, cancel := context.WithTimeout(ctx, duration)
+	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		if r == nil {
+			next(rw, r)
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(r.Context(), duration)
 		defer cancel()
 
 		c := make(chan error, 1)
-		ctx = ctx.Evolve(timeout)
 
-		go func() {
-			defer func() {
-				if err := recover(); err != nil {
-					c <- errors.Wrap(err, 3)
-				} else {
-					c <- nil
-				}
-			}()
-
-			next(ctx)
-		}()
+		go next(rw, r.WithContext(ctx))
 
 		var err error
 		select {
@@ -49,7 +41,7 @@ func Timeout(d string) web.Middleware {
 		switch err {
 		case nil: // do nothing
 		case context.DeadlineExceeded:
-			ctx.WriteHeader(http.StatusServiceUnavailable)
+			rw.WriteHeader(http.StatusServiceUnavailable)
 		default:
 			panic(err)
 		}
